@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+<title>ADV Live Ride Mode (iPhone Safe)</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#000;
+  color:white;
+}
+header{
+  background:#111;
+  text-align:center;
+  padding:14px;
+  font-size:20px;
+  font-weight:bold;
+}
+.stage-buttons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:10px;
+  background:#111;
+}
+button{
+  flex:1;
+  min-width:80px;
+  padding:14px;
+  font-size:18px;
+  border:none;
+  border-radius:10px;
+  background:#222;
+  color:white;
+}
+button:active{background:#555;}
+
+.hud{
+  padding:10px;
+  background:#121212;
+  font-size:15px;
+}
+
+#status{
+  font-size:28px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+.map{
+  width:100%;
+  height:75vh;
+  background:#000;
+}
+
+iframe{
+  width:100%;
+  height:100%;
+  border:0;
+}
+</style>
+</head>
+
+<body>
+
+<header>🏍️ ADV LIVE RIDE MODE — iPhone Safe</header>
+
+<div class="stage-buttons">
+  <button onclick="loadStage(1)">S1</button>
+  <button onclick="loadStage(2)">S2</button>
+  <button onclick="loadStage(3)">S3</button>
+  <button onclick="loadStage(4)">S4</button>
+  <button onclick="loadStage(5)">S5</button>
+  <button onclick="loadStage(6)">S6</button>
+  <button onclick="loadStage(7)">S7</button>
+  <button onclick="loadStage(8)">S8</button>
+</div>
+
+<div class="hud">
+Tap a stage to load the map.<br>
+If riding remote: keep one stage open at a time for best performance.
+<div id="status">🟢 READY</div>
+</div>
+
+<div class="map" id="mapContainer"></div>
+
+<script>
+
+const maps = {
+  1:"https://www.google.com/maps/embed?pb=!1m62!1m12!1m3!1d322667.9417451913!2d-76.2447179563991!3d46.3510771497495!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m47!3e0!4m3!3m2!1d46.571378599999996!2d-75.75005949999999!4m3!3m2!1d46.612686499999995!2d-75.9059994!4m3!3m2!1d46.588961999999995!2d-75.9267352!4m3!3m2!1d46.4711291!2d-75.8454941!4m3!3m2!1d46.422070999999995!2d-75.827261!4m5!1s0x4cd04108fcdf95f3%3A0x77e525ac529a3e69!2sChalifoux%2C%20Quebec%20J0X%201E0!3m2!1d46.22304!2d-75.92906599999999!4m3!3m2!1d46.1620843!2d-75.94939029999999!4m5!1s0x4cd047e62d512c85%3A0x5d5e6fabc5fad7e6!2sCl%C3%A9ment%2C%20Quebec%20J0X%201W0!3m2!1d46.119060999999995!2d-75.93569099999999!4m3!3m2!1d46.0907603!2d-76.0450347!4m5!1s0x4cd0448e3fcb06e5%3A0x53d21abe58536209!2sBlue%20Sea%2C%20Quebec%20J0X%201C0!3m2!1d46.188299!2d-76.04638299999999!5e1!3m2!1sen!2sca",
+
+  2:"https://www.google.com/maps/embed?pb=!1m60!1m12!1m3!1d7403.14870217209!2d-75.7530883!3d46.56874339999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m45!3e0!4m5!1s0x4cdb9b839c3100b9%3A0xf8d3ef64c40b1953!2sLac%20Capimitchigama%2C%20La%20Vall%C3%A9e-de-la-Gatineau%20Regional%20County%20Municipality%2C%20QC%20G0X%203M0!3m2!1d47.6177026!2d-75.696618!4m3!3m2!1d47.512718799999995!2d-75.87711329999999!4m3!3m2!1d47.2191571!2d-75.956963!4m3!3m2!1d47.144104399999996!2d-75.9890807!4m3!3m2!1d46.9128641!2d-75.99859479999999!4m3!3m2!1d47.0821733!2d-75.75240649999999!4m5!1s0x4cdaed1cedb9e49d%3A0xa3e507bbe62a4946!2sRabaska%20Lodge%2C%2055%20Chem.%20de%20l%27Oasis%2C%20Ferme-Neuve%2C%20QC%20J0W%201C0!3m2!1d46.891047!2d-75.684725!4m3!3m2!1d46.7606374!2d-75.70418219999999!4m3!3m2!1d46.602410299999995!2d-75.7518089!4m3!3m2!1d46.571378599999996!2d-75.75005949999999!5e1!3m2!1sen!2sca"
+};
+
+function loadStage(n){
+
+  const container = document.getElementById("mapContainer");
+  container.innerHTML = "";
+
+  const iframe = document.createElement("iframe");
+  iframe.src = maps[n].trim();
+  iframe.loading = "lazy";
+  iframe.allowFullscreen = true;
+
+  container.appendChild(iframe);
+
+  document.getElementById("status").innerHTML =
+    "🧭 Stage " + n + " loaded";
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="ADV Ride Mode">
+
+<title>ADV Live Ride Mode</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#000;
+  color:white;
+}
+header{
+  background:#111;
+  padding:14px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+}
+
+.top{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  padding:10px;
+  background:#111;
+}
+
+button{button{
+  flex:1;
+  min-width:90px;
+  padding:14px;
+  font-size:18px;
+  border:none;
+  border-radius:12px;
+  background:#222;
+  color:white;
+  cursor:pointer;
+}
+button:hover{background:#444;}
+
+.hud{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  padding:10px;
+  background:#0f0f0f;
+}
+
+.card{
+  background:#1d1d1d;
+  padding:10px;
+  border-radius:10px;
+  min-width:180px;
+  flex:1;
+}
+
+input,select{
+  width:100%;
+  margin-top:5px;
+  padding:8px;
+  background:#000;
+  color:white;
+  border:1px solid #444;
+  border-radius:6px;
+}
+
+#status{
+  font-size:30px;
+  font-weight:bold;
+  text-align:center;
+  padding:8px;
+}
+
+#summary{
+  font-size:16px;
+  line-height:1.4;
+}
+
+.map{
+  width:100%;
+  height:72vh;
+}
+iframe{
+  width:100%;
+  height:100%;
+  border:0;
+}
+</style>
+</head>
+
+<body>
+
+<header>🏍️ ADV LIVE RIDE MODE — KTM 390</header>
+
+<div class="top">
+  <button onclick="showStage(1)">S1</button>
+  <button onclick="showStage(2)">S2</button>
+  <button onclick="showStage(3)">S3</button>
+  <button onclick="showStage(4)">S4</button>
+  <button onclick="showStage(5)">S5</button>
+  <button onclick="showStage(6)">S6</button>
+  <button onclick="showStage(7)">S7</button>
+  <button onclick="showStage(8)">S8</button>
+</div>
+
+<div class="hud">
+
+<div class="card">
+<label>⛽ Fuel range (km)</label>
+<input id="range" type="number" value="350">
+</div>
+
+<div class="card">
+<label>📏 Distance left (km)</label>
+<input id="distance" type="number" value="120">
+</div>
+
+<div class="card">
+<label>🛣️ Terrain</label>
+<select id="terrain">
+<option value="75">Pavement</option>
+<option value="55" selected>Gravel</option>
+<option value="40">Technical</option>
+</select>
+</div>
+
+<div class="card">
+<label>🌧️ Weather</label>
+<select id="weather">
+<option value="1">Dry</option>
+<option value="1.15">Wet</option>
+<option value="1.3">Rain</option>
+</select>
+</div>
+
+<div class="card">
+<label>🕒 Current time</label>
+<input id="time" type="time" value="13:00">
+</div>
+
+<div class="card">
+<button onclick="rideCheck()">CAN I CONTINUE?</button>
+<div id="status">🟢 READY</div>
+<div id="summary"></div>
+</div>
+
+</div>
+
+<div class="map" id="mapContainer"></div>
+
+<script>
+
+// PASTE FULL IFRAME LINES (UNCHANGED)
+const stages = {
+  1:`<iframe src="https://www.google.com/maps/embed?pb=!1m62!1m12!1m3!1d322667.9417451913!2d-76.2447179563991!3d46.3510771497495!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m47!3e0!4m3!3m2!1d46.571378599999996!2d-75.75005949999999!4m3!3m2!1d46.612686499999995!2d-75.9059994!4m3!3m2!1d46.588961999999995!2d-75.9267352!4m3!3m2!1d46.4711291!2d-75.8454941!4m3!3m2!1d46.422070999999995!2d-75.827261!4m5!1s0x4cd04108fcdf95f3%3A0x77e525ac529a3e69!2sChalifoux%2C%20Quebec%20J0X%201E0!3m2!1d46.22304!2d-75.92906599999999!4m3!3m2!1d46.1620843!2d-75.94939029999999!4m5!1s0x4cd047e62d512c85%3A0x5d5e6fabc5fad7e6!2sCl%C3%A9ment%2C%20Quebec%20J0X%201W0!3m2!1d46.119060999999995!2d-75.93569099999999!4m3!3m2!1d46.0907603!2d-76.0450347!4m5!1s0x4cd0448e3fcb06e5%3A0x53d21abe58536209!2sBlue%20Sea%2C%20Quebec%20J0X%201C0!3m2!1d46.188299!2d-76.04638299999999!5e1!3m2!1sen!2sca!4v1771079926226!5m2!1sen!2sca" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+`,
+  2:`<iframe src="https://www.google.com/maps/embed?pb=!1m60!1m12!1m3!1d7403.14870217209!2d-75.7530883!3d46.56874339999999!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m45!3e0!4m5!1s0x4cdb9b839c3100b9%3A0xf8d3ef64c40b1953!2sLac%20Capimitchigama%2C%20La%20Vall%C3%A9e-de-la-Gatineau%20Regional%20County%20Municipality%2C%20QC%20G0X%203M0!3m2!1d47.6177026!2d-75.696618!4m3!3m2!1d47.512718799999995!2d-75.87711329999999!4m3!3m2!1d47.2191571!2d-75.956963!4m3!3m2!1d47.144104399999996!2d-75.9890807!4m3!3m2!1d46.9128641!2d-75.99859479999999!4m3!3m2!1d47.0821733!2d-75.75240649999999!4m5!1s0x4cdaed1cedb9e49d%3A0xa3e507bbe62a4946!2sRabaska%20Lodge%2C%2055%20Chem.%20de%20l&#39;Oasis%2C%20Ferme-Neuve%2C%20QC%20J0W%201C0!3m2!1d46.891047!2d-75.684725!4m3!3m2!1d46.7606374!2d-75.70418219999999!4m3!3m2!1d46.602410299999995!2d-75.7518089!4m3!3m2!1d46.571378599999996!2d-75.75005949999999!5e1!3m2!1sen!2sca!4v1771088192429!5m2!1sen!2sca" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+`,
+  3:`<iframe src="https://www.google.com/maps/embed?pb=!1m62!1m12!1m3!1d627528.5468966381!2d-76.73369159999999!3d47.840926000000024!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m47!3e0!4m5!1s0x4cdf14c1e6db5f83%3A0xbc2f0f4c951bc9b2!2sBelcourt%2C%20Quebec%20J0Y%202M0!3m2!1d48.402102!2d-77.353606!4m3!3m2!1d48.4304151!2d-77.2872857!4m5!1s0x4cde965ae009d541%3A0xfb510344fe62fb92!2sSenneterre%2C%20Quebec!3m2!1d48.3902247!2d-77.244627!4m3!3m2!1d48.3813861!2d-77.19854099999999!4m5!1s0x4cdf180f273181ed%3A0x3eabc834c894308c!2sPourvoirie%20du%20Lac%20Faillon%2C%20233%20Chemin%20du%20Lac-Faillon%2C%20Senneterre%2C%20QC%20J0Y%202M0!3m2!1d48.313221299999995!2d-76.7061796!4m3!3m2!1d48.2677732!2d-76.5676044!4m5!1s0x4cde962dcebd685d%3A0x27f74884ea6bede1!2sDomaine%20Forsythe%20Inc%2C%20Senneterre%2C%20QC%20J0Y%202M0!3m2!1d48.24756!2d-76.4175688!4m3!3m2!1d48.084936899999995!2d-75.9659518!4m5!1s0x4cdb9b839c3100b9%3A0xf8d3ef64c40b1953!2sLac%20Capimitchigama%2C%20La%20Vall%C3%A9e-de-la-Gatineau%20Regional%20County%20Municipality%2C%20QC%20G0X%203M0!3m2!1d47.6177026!2d-75.696618!5e1!3m2!1sen!2sca!4v1771088228514!5m2!1sen!2sca" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+`,
+  4:`<iframe src="https://www.google.com/maps/embed?pb=!1m64!1m12!1m3!1d308313.8457038486!2d-77.73419150000002!3d48.35220600000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m49!3e0!4m5!1s0x4d21a07b8d54be99%3A0x83cef15b3c45bc48!2sAuthier-Nord%2C%20Quebec%20J0Z%201E0!3m2!1d48.837351299999995!2d-78.8594549!4m5!1s0x4d205726b3848525%3A0x33611e45b080b132!2sCamping%20du%20Domaine%20Lac%20Berry%2C%20354%20Rte%20de%20Villemontel-Desboues%2C%20Berry%2C%20Quebec%20J0Y%202G0!3m2!1d48.7833152!2d-78.3745811!4m5!1s0x4d208ece044b8033%3A0x25117b32dcc9c96b!2sSaint-Maurice-de-Dalquier%2C%20Amos%2C%20QC%20J9T%203A1!3m2!1d48.646603999999996!2d-77.986856!4m3!3m2!1d48.7539009!2d-77.9085364!4m3!3m2!1d48.7633283!2d-77.8591023!4m3!3m2!1d48.7050748!2d-77.74115429999999!4m3!3m2!1d48.675432199999996!2d-77.741522!4m3!3m2!1d48.5878528!2d-77.6379508!4m3!3m2!1d48.5878379!2d-77.4104553!4m5!1s0x4cdf14c1e6db5f83%3A0xbc2f0f4c951bc9b2!2sBelcourt%2C%20Quebec%20J0Y%202M0!3m2!1d48.402102!2d-77.353606!5e1!3m2!1sen!2sca!4v1771088244716!5m2!1sen!2sca" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+`,
+  5:`<iframe src="https://www.google.com/maps/embed?pb=!1m68!1m12!1m3!1d108875.81763361023!2d-79.00782600000004!3d48.7955515!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m53!3e0!4m5!1s0x4d2133a1dc9144df%3A0x796a59376708dc40!2sRouyn-Noranda%2C%20Quebec!3m2!1d48.2342362!2d-79.01878359999999!4m5!1s0x4d2139e709e807e5%3A0xcc599c7d12ca6505!2sD&#39;Alembert%2C%20Rouyn-Noranda%2C%20QC%20J0Z%201P0!3m2!1d48.362111999999996!2d-79.016465!4m5!1s0x4d2125323c4f2a29%3A0x8c26e806085c0f48!2sCl%C3%A9ricy%2C%20Rouyn-Noranda%2C%20QC%20J0Z%201P0!3m2!1d48.365167!2d-78.866458!4m5!1s0x4d213c27fc84b0f7%3A0x1ff3fc330f983abb!2sDestor%2C%20Rouyn-Noranda%2C%20QC%20J9Y%200C8!3m2!1d48.459326999999995!2d-78.953541!4m3!3m2!1d48.46198!2d-78.88045199999999!4m3!3m2!1d48.4522374!2d-78.66006879999999!4m3!3m2!1d48.6381321!2d-78.7529678!4m3!3m2!1d48.7196152!2d-79.0148725!4m5!1s0x4d217910672a89c5%3A0x22e9db55e75b0c7!2sSite%20historique%20du%20poste%20de%20garde%20feu%2C%20980%20Mont%C3%A9e%20des%20Garde%20Feux%2C%20Val-Saint-Gilles%2C%20Quebec%20J0Z%203T0!3m2!1d48.9960531!2d-79.1677216!4m5!1s0x4d21a07b8d54be99%3A0x83cef15b3c45bc48!2sAuthier-Nord%2C%20Quebec%20J0Z%201E0!3m2!1d48.837351299999995!2d-78.8594549!5e1!3m2!1sen!2sca!4v1771088261363!5m2!1sen!2sca" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+`,
+  6:`<iframe src="https://www.google.com/maps/embed?pb=!1m66!1m12!1m3!1d363165.2367251364!2d-79.31608740000001!3d47.80692359999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m51!3e0!4m3!3m2!1d47.2243066!2d-78.9999921!4m3!3m2!1d47.3608926!2d-79.231562!4m5!1s0x4d20ef82ae90a7c3%3A0xe10ac7a8f48ab832!2sClub%20Mx%20Tr%C3%A9cesson%2C%202L0%2C%20Chem.%20Roulier%2C%20Sainte-Gertrude-Manneville%2C%20Quebec!3m2!1d47.3540486!2d-79.3723342!4m5!1s0x4d26436f41c009fd%3A0x21d23ed3cfbae8e0!2s967%20Chem.%20des%205%20et%206%20Rang%2C%20Lorrainville%2C%20QC%20J0Z%202R0!3m2!1d47.3899841!2d-79.3724883!4m3!3m2!1d47.413951!2d-79.3074803!4m5!1s0x4d2650aff99ca94d%3A0x190176662702edcb!2sGeoffroy%2C%20Angliers%2C%20QC%20J0Z%201A0!3m2!1d47.483332999999995!2d-79.216667!4m5!1s0x4d276d63ccb49cdd%3A0x9156f08720c6e84d!2sAngliers%2C%20Quebec!3m2!1d47.549060999999995!2d-79.237161!4m5!1s0x4d26fad7d383036d%3A0x4a20f96c85000dee!2sR%C3%A9migny%2C%20Quebec%20J0Z%203H0!3m2!1d47.760222999999996!2d-79.209085!4m3!3m2!1d47.9441103!2d-78.9835088!4m3!3m2!1d48.2399394!2d-79.028947!5e1!3m2!1sen!2sca!4v1771088307708!5m2!1sen!2sca" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+`,
+  7:`<iframe src="https://www.google.com/maps/embed?pb=!1m60!1m12!1m3!1d91201.23420212534!2d-79.03896099999999!3d47.206649!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m45!3e0!4m3!3m2!1d46.4814461!2d-77.9185454!4m3!3m2!1d46.705280099999996!2d-78.4200493!4m3!3m2!1d46.683208!2d-78.46882049999999!4m3!3m2!1d46.6313434!2d-78.478354!4m3!3m2!1d46.6461743!2d-78.5702508!4m5!1s0x4d28720c241ca6ef%3A0x538a91135a8908e6!2sKipawa%2C%20Quebec%20J0Z%202H0!3m2!1d46.783860999999995!2d-78.984257!4m5!1s0x4d2804324f6d760d%3A0x7e18ed323aa1ae6!2sRouyn-Noranda%2C%20Quebec%20J0Z%203R0!3m2!1d46.7930324!2d-78.632927!4m3!3m2!1d46.7828999!2d-78.58022!4m3!3m2!1d46.8485498!2d-78.58790309999999!4m3!3m2!1d47.2243066!2d-78.9999921!5e1!3m2!1sen!2sca!4v1771088327235!5m2!1sen!2sca" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+`,
+  8:`<iframe src="https://www.google.com/maps/embed?pb=!1m66!1m12!1m3!1d8636.559906557439!2d-77.9183191!3d46.481469!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m51!3e0!4m5!1s0x4cd1a7e5649cca73%3A0xc8963cb6ebf2f2b6!2s82%20Av.%20Palmer%2C%20Otter%20Lake%2C%20QC%20J0X%202P0!3m2!1d45.8524299!2d-76.44276649999999!4m3!3m2!1d45.7753945!2d-76.5230322!4m3!3m2!1d45.7901296!2d-76.61552449999999!4m3!3m2!1d45.8786341!2d-76.7435797!4m5!1s0x4cd110ff28d31713%3A0xf7b520b67255c294!2sDomaine%20Du%20Lac%20BRYSON%20Lake%20Lodge%2C%20Km%2072%20Jim%20lake%20road%20turn%20right%2016%20km%20to%20Bryson%20Lake%2C%20Fort-Coulonges%2C%20Quebec%20J0X%201R0!3m2!1d46.397565199999995!2d-76.9816262!4m5!1s0x4cd7372242b0910d%3A0x4f92fea01f1d0ed!2sPourvoirie%20du%20Lac%20Forant%20-%20Forant%20Lake%20Outfitter%2C%20Jim&#39;s%20Lake%20Rd%2C%20Pontiac%20Regional%20County%20Municipality%2C%20Quebec%20J0X%201R0!3m2!1d46.3774337!2d-77.1966645!4m3!3m2!1d46.539269399999995!2d-77.3308823!4m5!1s0x4cd70520df498ab3%3A0xbd22586b234d183a!2sRapides-des-Joachims%2C%20Quebec%20J0X%203M0!3m2!1d46.1988487!2d-77.6906743!4m5!1s0x4cd7093e1cd1132b%3A0xbd8004e5e6b5d576!2sGrand%20Chute%20Bridge%2C%20Chem.%20Dumoine%2C%20T%C3%A9miscamingue%20Regional%20County%20Municipality%2C%20Quebec%20J0Z%202J0!3m2!1d46.3783989!2d-77.7723932!4m3!3m2!1d46.4814461!2d-77.9185454!5e1!3m2!1sen!2sca!4v1771088349920!5m2!1sen!2sca" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+`
+};
+
+function showStage(n){
+  document.getElementById("mapContainer").innerHTML = stages[n];
+}
+
+function rideCheck(){
+
+  const range = parseInt(document.getElementById("range").value);
+  const dist = parseInt(document.getElementById("distance").value);
+  const speed = parseInt(document.getElementById("terrain").value);
+  const weather = parseFloat(document.getElementById("weather").value);
+
+  const [h,m] = document.getElementById("time").value.split(":").map(Number);
+
+  const effectiveRange = range * 0.85;
+  const adjustedSpeed = speed / weather;
+  const hrs = dist / adjustedSpeed;
+  const remaining = Math.round(effectiveRange - dist);
+
+  let finishH = h + Math.floor(hrs);
+  let finishM = Math.round(m + (hrs%1)*60);
+  if(finishM>=60){finishH++; finishM-=60;}
+
+  let status="", color="", notes="";
+
+  if(remaining < 60){
+    status="🔴 STOP / REFUEL";
+    notes="Fuel margin unsafe.";
+  } else if(remaining < 120){
+    status="🟡 CAUTION";
+    notes="Proceed carefully. Avoid dusk.";
+  } else {
+    status="🟢 GO";
+    notes="Good margin.";
+  }
+
+  if(finishH>=18){
+    notes += " 🦌 Dusk wildlife risk.";
+  }
+
+  document.getElementById("status").innerHTML = status;
+
+  document.getElementById("summary").innerHTML =
+    `⏱️ ${hrs.toFixed(1)} hrs remaining<br>
+     🕒 ETA ${finishH.toString().padStart(2,'0')}:${finishM.toString().padStart(2,'0')}<br>
+     ⛽ ~${remaining} km fuel margin<br>
+     ⚠️ ${notes}`;
+}
+
+showStage(1);
+
+</script>
+
+</body>
+</html>
